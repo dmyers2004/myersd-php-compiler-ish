@@ -2,7 +2,7 @@
 <?php
 
 ini_set('display_errors', 1);
-ini_set('memory_limit', '512M');
+ini_set('memory_limit', '1024M');
 ini_set('apc.stat',0);
 
 error_reporting(E_ALL ^ E_NOTICE);
@@ -15,13 +15,25 @@ $filename = basename(__FILE__);
 
 date_default_timezone_set('America/New_York');
 
+if (!isset($argv[1])) {
+	die('Syntax Error: Folder Missing'.chr(10));	
+}
+
 $show_caches = true;
 
 /* compile this */
-$apc_compile_dir = '/Applications/MAMP/htdocs/basicmvc-template';
+$apc_compile_dir = $argv[1];
+
+if (!file_exists($apc_compile_dir)) {
+	die('Syntax Error: '.$apc_compile_dir.': No such file or directory'.chr(10));	
+}
 
 /* desktop */
-$apc_compile_file = '/Users/myersd/Desktop/';
+$apc_compile_file = $_ENV['HOME'].'/Desktop/';
+
+if (ini_get('apc.stat') == 1) {
+	die('Internal Error: You must turn off apc.stat externally before running this script'.chr(10));	
+}
 
 echo 'APC Directory Compiler '.gmdate('Y-m-d H:i:s').chr(10);
 echo 'Compile '.$apc_compile_dir.chr(10);
@@ -39,9 +51,10 @@ if ($show_caches) {
 	var_dump(apc_cache_info());
 }
 
-$bytes = apc_bin_dumpfile(null,null,$apc_compile_file.basename($apc_compile_dir).'.apc'); 
+$filename = $apc_compile_file.basename($apc_compile_dir).'.apc';
+$bytes = apc_bin_dumpfile(null,null,$filename); 
 
-echo ($bytes) ? $bytes.'b' : 'Error';
+echo ($bytes ? $bytes.'b' : 'Error').chr(10);
 
 function apc_compile_dir($root, $recursively = true){
 	$compiled = true;
